@@ -15,15 +15,15 @@ const CHIP_8_WIDTH = 64
 const CHIP_8_HEIGHT = 32
 
 func main() {
-	if len(os.Args) < 2 {
-		panic("Please provide a c8 file")
+	if len(os.Args) < 3 {
+		panic("Please provide modifier and a c8 file")
 	}
 
-	fileName := os.Args[1]
+	fileName := os.Args[2]
 	modifier := 10
 
 	if len(os.Args) == 3 {
-		if val, valErr := strconv.Atoi(os.Args[2]); valErr != nil {
+		if val, valErr := strconv.Atoi(os.Args[1]); valErr != nil {
 			panic(valErr)
 		} else {
 			modifier = val
