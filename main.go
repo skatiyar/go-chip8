@@ -60,8 +60,11 @@ func main() {
 	}
 
 	for !window.ShouldClose() {
-		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-		window.SwapBuffers()
+		c8.Cycle()
+		if c8.Draw() {
+			gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+			window.SwapBuffers()
+		}
 		glfw.PollEvents()
 	}
 }
