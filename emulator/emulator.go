@@ -7,6 +7,25 @@ import (
 	"os"
 )
 
+var fontSet = []byte{
+	0xF0, 0x90, 0x90, 0x90, 0xF0, //0
+	0x20, 0x60, 0x20, 0x20, 0x70, //1
+	0xF0, 0x10, 0xF0, 0x80, 0xF0, //2
+	0xF0, 0x10, 0xF0, 0x10, 0xF0, //3
+	0x90, 0x90, 0xF0, 0x10, 0x10, //4
+	0xF0, 0x80, 0xF0, 0x10, 0xF0, //5
+	0xF0, 0x80, 0xF0, 0x90, 0xF0, //6
+	0xF0, 0x10, 0x20, 0x40, 0x40, //7
+	0xF0, 0x90, 0xF0, 0x90, 0xF0, //8
+	0xF0, 0x90, 0xF0, 0x10, 0xF0, //9
+	0xF0, 0x90, 0xF0, 0x90, 0x90, //A
+	0xE0, 0x90, 0xE0, 0x90, 0xE0, //B
+	0xF0, 0x80, 0x80, 0x80, 0xF0, //C
+	0xE0, 0x90, 0x90, 0x90, 0xE0, //D
+	0xF0, 0x80, 0xF0, 0x80, 0xF0, //E
+	0xF0, 0x80, 0xF0, 0x80, 0x80, //F
+}
+
 type Chip8 struct {
 	display [64 * 32]byte // display size
 
@@ -27,10 +46,20 @@ type Chip8 struct {
 }
 
 func Init() Chip8 {
-	return Chip8{
+	instance := Chip8{
 		shouldDraw: true,
 		pc:         0x200,
 	}
+
+	for i := 0; i < len(fontSet); i++ {
+		instance.memory[i] = fontSet[i]
+	}
+
+	return instance
+}
+
+func (c *Chip8) Buffer() [2048]byte {
+	return c.display
 }
 
 func (c *Chip8) Draw() bool {
@@ -39,8 +68,17 @@ func (c *Chip8) Draw() bool {
 	return sd
 }
 
+func (c *Chip8) Key(num uint8, down bool) {
+	if down {
+		c.key[num] = 1
+	} else {
+		c.key[num] = 0
+	}
+}
+
 func (c *Chip8) Cycle() {
-	c.oc = uint16(c.memory[c.pc])<<8 | uint16(c.memory[c.pc+1])
+	c.oc = (uint16(c.memory[c.pc]) << 8) | uint16(c.memory[c.pc+1])
+
 	switch c.oc & 0xF000 {
 	case 0x0000:
 		switch c.oc & 0x000F {
@@ -226,6 +264,14 @@ func (c *Chip8) Cycle() {
 		}
 	default:
 		fmt.Printf("Invalid opcode %X\n", c.oc)
+	}
+
+	if c.delayTimer > 0 {
+		c.delayTimer = c.delayTimer - 1
+	}
+	if c.soundTimer > 0 {
+		// TODO add sound
+		c.soundTimer = c.soundTimer - 1
 	}
 }
 
