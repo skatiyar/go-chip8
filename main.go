@@ -36,6 +36,10 @@ func main() {
 		panic(loadErr)
 	}
 
+	c8.AddBeep(func() {
+		println("Beep")
+	})
+
 	if sdlErr := sdl.Init(sdl.INIT_EVERYTHING); sdlErr != nil {
 		panic(sdlErr)
 	}
@@ -53,11 +57,10 @@ func main() {
 	}
 	defer canvas.Destroy()
 
-	running := true
-	for running {
+	for {
 		c8.Cycle()
 		if c8.Draw() {
-			canvas.SetDrawColor(0, 0, 0, 255)
+			canvas.SetDrawColor(255, 0, 0, 255)
 			canvas.Clear()
 
 			vector := c8.Buffer()
@@ -82,7 +85,7 @@ func main() {
 		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
 			switch et := event.(type) {
 			case *sdl.QuitEvent:
-				running = false
+				os.Exit(0)
 			case *sdl.KeyboardEvent:
 				if et.Type == sdl.KEYUP {
 					switch et.Keysym.Sym {
@@ -157,6 +160,6 @@ func main() {
 				}
 			}
 		}
-		sdl.Delay(16)
+		sdl.Delay(17)
 	}
 }

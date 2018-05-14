@@ -7,7 +7,7 @@ import (
 	"os"
 )
 
-var fontSet = []byte{
+var fontSet = []uint8{
 	0xF0, 0x90, 0x90, 0x90, 0xF0, //0
 	0x20, 0x60, 0x20, 0x20, 0x70, //1
 	0xF0, 0x10, 0xF0, 0x80, 0xF0, //2
@@ -27,12 +27,12 @@ var fontSet = []byte{
 }
 
 type Chip8 struct {
-	display [64 * 32]byte // display size
+	display [64 * 32]uint8 // display size
 
-	memory [4096]byte // memory size 4k
-	vx     [16]byte   // cpu registers V0-VF
-	key    [16]byte   // input key
-	stack  [16]uint16 // program counter stack
+	memory [4096]uint8 // memory size 4k
+	vx     [16]uint8   // cpu registers V0-VF
+	key    [16]uint8   // input key
+	stack  [16]uint16  // program counter stack
 
 	oc uint16 // current opcode
 	pc uint16 // program counter
@@ -43,12 +43,14 @@ type Chip8 struct {
 	soundTimer uint8
 
 	shouldDraw bool
+	beeper     func()
 }
 
 func Init() Chip8 {
 	instance := Chip8{
 		shouldDraw: true,
 		pc:         0x200,
+		beeper:     func() {},
 	}
 
 	for i := 0; i < len(fontSet); i++ {
@@ -58,7 +60,7 @@ func Init() Chip8 {
 	return instance
 }
 
-func (c *Chip8) Buffer() [2048]byte {
+func (c *Chip8) Buffer() [2048]uint8 {
 	return c.display
 }
 
@@ -66,6 +68,10 @@ func (c *Chip8) Draw() bool {
 	sd := c.shouldDraw
 	c.shouldDraw = false
 	return sd
+}
+
+func (c *Chip8) AddBeep(fn func()) {
+	c.beeper = fn
 }
 
 func (c *Chip8) Key(num uint8, down bool) {
@@ -84,7 +90,7 @@ func (c *Chip8) Cycle() {
 		switch c.oc & 0x000F {
 		case 0x0000: // 0x00E0 Clears screen
 			for i := 0; i < len(c.display); i++ {
-				c.display[i] = 0x0000
+				c.display[i] = 0x0
 			}
 			c.shouldDraw = true
 			c.pc = c.pc + 2
@@ -120,10 +126,10 @@ func (c *Chip8) Cycle() {
 			c.pc = c.pc + 2
 		}
 	case 0x6000: // 0x6XNN Sets VX to NN
-		c.vx[(c.oc&0x0F00)>>8] = byte(c.oc & 0x00FF)
+		c.vx[(c.oc&0x0F00)>>8] = uint8(c.oc & 0x00FF)
 		c.pc = c.pc + 2
 	case 0x7000: // 0x7XNN Adds NN to VX
-		c.vx[(c.oc&0x0F00)>>8] = c.vx[(c.oc&0x0F00)>>8] + byte(c.oc&0x00FF)
+		c.vx[(c.oc&0x0F00)>>8] = c.vx[(c.oc&0x0F00)>>8] + uint8(c.oc&0x00FF)
 		c.pc = c.pc + 2
 	case 0x8000:
 		switch c.oc & 0x000F {
@@ -186,9 +192,26 @@ func (c *Chip8) Cycle() {
 	case 0xB000: // 0xBNNN Jumps to the address NNN plus V0
 		c.pc = (c.oc & 0x0FFF) + uint16(c.vx[0x0])
 	case 0xC000: // 0xCXNN Sets VX to the result of a bitwise and operation on a random number (Typically: 0 to 255) and NN
-		c.vx[(c.oc&0x0F00)>>8] = byte(rand.Intn(255)) & byte(c.oc&0x00FF)
+		c.vx[(c.oc&0x0F00)>>8] = uint8(rand.Intn(256)) & uint8(c.oc&0x00FF)
 		c.pc = c.pc + 2
-	case 0xD000: // 0xDXYN Draws a sprite at coordinate (VX, VY) TODO
+	case 0xD000: // 0xDXYN Draws a sprite at coordinate (VX, VY)
+		x := c.vx[(c.oc&0x0F00)>>8]
+		y := c.vx[(c.oc&0x00F0)>>4]
+		h := c.oc & 0x000F
+		c.vx[0xF] = 0
+		var j uint16 = 0
+		var i uint16 = 0
+		for j = 0; j < h; j++ {
+			pixel := c.memory[c.iv+j]
+			for i = 0; i < 8; i++ {
+				if (pixel & (0x80 >> i)) != 0 {
+					if c.display[x+uint8(i)+((y+uint8(j))*64)] == 1 {
+						c.vx[0xF] = 1
+					}
+					c.display[x+uint8(i)+((y+uint8(j))*64)] ^= 1
+				}
+			}
+		}
 		c.shouldDraw = true
 		c.pc = c.pc + 2
 	case 0xE000:
@@ -232,7 +255,7 @@ func (c *Chip8) Cycle() {
 			c.soundTimer = c.vx[(c.oc&0x0F00)>>8]
 			c.pc = c.pc + 2
 		case 0x001E: // 0xFX1E Adds VX to I
-			if c.iv+uint16(c.vx[(c.oc&0x0F00)>>8]) > 0xFFFF {
+			if c.iv+uint16(c.vx[(c.oc&0x0F00)>>8]) > 0xFFF {
 				c.vx[0xF] = 1
 			} else {
 				c.vx[0xF] = 0
@@ -270,7 +293,9 @@ func (c *Chip8) Cycle() {
 		c.delayTimer = c.delayTimer - 1
 	}
 	if c.soundTimer > 0 {
-		// TODO add sound
+		if c.soundTimer == 1 {
+			c.beeper()
+		}
 		c.soundTimer = c.soundTimer - 1
 	}
 }
