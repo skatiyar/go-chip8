@@ -1,7 +1,6 @@
 package emulator
 
 import (
-	"errors"
 	"fmt"
 	"math/rand"
 	"os"
@@ -312,7 +311,7 @@ func (c *Chip8) LoadProgram(fileName string) error {
 		return fStatErr
 	}
 	if int64(len(c.memory)-512) < fStat.Size() { // program is loaded at 0x200
-		return errors.New("Program size bigger than memory")
+		return fmt.Errorf("Program size bigger than memory")
 	}
 
 	buffer := make([]byte, fStat.Size())
