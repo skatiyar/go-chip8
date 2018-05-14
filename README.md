@@ -2,11 +2,9 @@
 
 A practise project to learn about emulation, implements CHIP-8 in golang.
 
-Note: Current implementation has major bug in rendering, which makes it unusable. Currently in process of hunting and solving.
-
 ## Screenshots
 
-**__TODO__**
+![Hello Chip8](https://raw.githubusercontent.com/SKatiyar/go-chip8/master/screenshot.png)
 
 ## Installing
 
@@ -37,6 +35,16 @@ Modifier sets the logical size to pixel. Default resolution supported by `CHIP8`
 
 ```
 go run main.go 10 roms/filter.ch8
+```
+
+## Key Bindings
+
+```
+Chip8 keypad         Keyboard mapping
+1 | 2 | 3 | C        1 | 2 | 3 | 4
+4 | 5 | 6 | D   =>   Q | W | E | R
+7 | 8 | 9 | E   =>   A | S | D | F
+A | 0 | B | F        Z | X | C | V
 ```
 
 ## Sources

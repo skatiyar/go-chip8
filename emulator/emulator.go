@@ -26,7 +26,7 @@ var fontSet = []uint8{
 }
 
 type Chip8 struct {
-	display [64 * 32]uint8 // display size
+	display [32][64]uint8 // display size
 
 	memory [4096]uint8 // memory size 4k
 	vx     [16]uint8   // cpu registers V0-VF
@@ -59,7 +59,7 @@ func Init() Chip8 {
 	return instance
 }
 
-func (c *Chip8) Buffer() [2048]uint8 {
+func (c *Chip8) Buffer() [32][64]uint8 {
 	return c.display
 }
 
@@ -89,7 +89,9 @@ func (c *Chip8) Cycle() {
 		switch c.oc & 0x000F {
 		case 0x0000: // 0x00E0 Clears screen
 			for i := 0; i < len(c.display); i++ {
-				c.display[i] = 0x0
+				for j := 0; j < len(c.display[i]); j++ {
+					c.display[i][j] = 0x0
+				}
 			}
 			c.shouldDraw = true
 			c.pc = c.pc + 2
@@ -204,10 +206,10 @@ func (c *Chip8) Cycle() {
 			pixel := c.memory[c.iv+j]
 			for i = 0; i < 8; i++ {
 				if (pixel & (0x80 >> i)) != 0 {
-					if c.display[x+uint8(i)+((y+uint8(j))*64)] == 1 {
+					if c.display[(y + uint8(j))][x+uint8(i)] == 1 {
 						c.vx[0xF] = 1
 					}
-					c.display[x+uint8(i)+((y+uint8(j))*64)] ^= 1
+					c.display[(y + uint8(j))][x+uint8(i)] ^= 1
 				}
 			}
 		}
