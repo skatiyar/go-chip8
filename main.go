@@ -75,6 +75,7 @@ func main() {
 			vector := c8.Buffer()
 			for j := 0; j < 32; j++ {
 				for i := 0; i < 64; i++ {
+					// Values of pixel are stored in 1D array of size 64 * 32
 					if vector[(j*64)+i] != 0 {
 						canvas.SetDrawColor(255, 255, 0, 255)
 					} else {
