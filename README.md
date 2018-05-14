@@ -2,7 +2,7 @@
 
 A practise project to learn about emulation, implements CHIP-8 in golang.
 
-## Screenshots
+## Screenshot
 
 ![Hello Chip8](https://raw.githubusercontent.com/SKatiyar/go-chip8/master/screenshot.png)
 
