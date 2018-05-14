@@ -2,6 +2,8 @@
 
 A practise project to learn about emulation, implements CHIP-8 in golang.
 
+Note: Current implementation has major bug in rendering, which makes it unusable. Currently in process of hunting and solving.
+
 ## Screenshots
 
 **__TODO__**
