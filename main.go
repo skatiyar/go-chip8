@@ -2,7 +2,6 @@ package main
 
 import (
 	"os"
-	"runtime"
 	"strconv"
 
 	sdl "github.com/veandco/go-sdl2/sdl"
@@ -10,6 +9,7 @@ import (
 	emu "github.com/SKatiyar/go-chip8/emulator"
 )
 
+// Default Chip8 resolution
 const CHIP_8_WIDTH int32 = 64
 const CHIP_8_HEIGHT int32 = 32
 
@@ -25,32 +25,37 @@ func main() {
 		if val, valErr := strconv.ParseInt(os.Args[1], 10, 32); valErr != nil {
 			panic(valErr)
 		} else {
-			modifier = int32(val)
+			if val > 0 {
+				modifier = int32(val)
+			}
 		}
 	}
 
-	runtime.LockOSThread()
-
+	// Initialize chip8 cpu
 	c8 := emu.Init()
 	if loadErr := c8.LoadProgram(fileName); loadErr != nil {
 		panic(loadErr)
 	}
 
+	// Function to be called for beep sound
 	c8.AddBeep(func() {
 		println("Beep")
 	})
 
+	// Initialize sdl2
 	if sdlErr := sdl.Init(sdl.INIT_EVERYTHING); sdlErr != nil {
 		panic(sdlErr)
 	}
 	defer sdl.Quit()
 
+	// Create window, chip8 resolution with given modifier
 	window, windowErr := sdl.CreateWindow("Chip 8 - "+fileName, sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, CHIP_8_WIDTH*modifier, CHIP_8_HEIGHT*modifier, sdl.WINDOW_SHOWN)
 	if windowErr != nil {
 		panic(windowErr)
 	}
 	defer window.Destroy()
 
+	// Create render surface
 	canvas, canvasErr := sdl.CreateRenderer(window, -1, 0)
 	if canvasErr != nil {
 		panic(canvasErr)
@@ -58,11 +63,15 @@ func main() {
 	defer canvas.Destroy()
 
 	for {
+		// Compute the next opcode
 		c8.Cycle()
+		// Draw only if required
 		if c8.Draw() {
+			// Clear the screen
 			canvas.SetDrawColor(255, 0, 0, 255)
 			canvas.Clear()
 
+			// Get the display buffer and render
 			vector := c8.Buffer()
 			for j := 0; j < 32; j++ {
 				for i := 0; i < 64; i++ {
@@ -82,6 +91,8 @@ func main() {
 
 			canvas.Present()
 		}
+
+		// Poll for Quit and Keyboard events
 		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
 			switch et := event.(type) {
 			case *sdl.QuitEvent:
@@ -160,6 +171,8 @@ func main() {
 				}
 			}
 		}
-		sdl.Delay(17)
+
+		// Chip8 cpu clock worked at frequency of 60Hz, so set delay to (1000/60)ms
+		sdl.Delay(1000 / 60)
 	}
 }
