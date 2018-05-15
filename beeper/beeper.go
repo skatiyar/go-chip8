@@ -5,6 +5,8 @@ package beeper
 import "C"
 
 import (
+	"math"
+	"reflect"
 	"time"
 	"unsafe"
 
@@ -39,6 +41,20 @@ func Init() (Beeper, error) {
 
 //export AudioCallback
 func AudioCallback(userdata unsafe.Pointer, stream *C.Uint8, length C.int) {
+	n := int(length)
+	buf := *(*[]C.Uint8)(unsafe.Pointer(&reflect.SliceHeader{
+		Data: uintptr(unsafe.Pointer(stream)),
+		Len:  n,
+		Cap:  n,
+	}))
+
+	var phase float64
+	for i := 0; i < n; i += 2 {
+		phase += 2 * math.Pi * 440 / 44100
+		sample := C.Uint8((math.Sin(phase) + 0.999999) * 128)
+		buf[i] = sample
+		buf[i+1] = sample
+	}
 }
 
 func (b *Beeper) Play() {
