@@ -12,7 +12,6 @@ A practise project to learn about emulation, implements CHIP-8 in golang.
 
 ```
 go get -u github.com/veandco/go-sdl2/sdl
-go get -u github.com/veandco/go-sdl2/mix
 ```
 
 Note: Read the installation instructions for sdl2 library from [`go-sdl2`](github.com/veandco/go-sdl2) for your os platform.
