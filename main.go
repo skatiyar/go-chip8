@@ -6,8 +6,8 @@ import (
 
 	sdl "github.com/veandco/go-sdl2/sdl"
 
-	beeper "github.com/SKatiyar/go-chip8/beeper"
-	emu "github.com/SKatiyar/go-chip8/emulator"
+	beeper "github.com/skatiyar/go-chip8/beeper"
+	emu "github.com/skatiyar/go-chip8/emulator"
 )
 
 // Default Chip8 resolution
