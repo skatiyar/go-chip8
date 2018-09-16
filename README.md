@@ -4,7 +4,7 @@ A practise project to learn about emulation, implements CHIP-8 in golang.
 
 ## Screenshot
 
-![Hello Chip8](https://raw.githubusercontent.com/SKatiyar/go-chip8/master/screenshot.png)
+![Hello Chip8](https://raw.githubusercontent.com/skatiyar/go-chip8/master/screenshot.png)
 
 ## Installing
 
@@ -19,12 +19,12 @@ Note: Read the installation instructions for sdl2 library from [`go-sdl2`](githu
 - Get code
 
 ```
-go get -u github.com/SKatiyar/go-chip8
+go get -u github.com/skatiyar/go-chip8
 ```
 
 ## Running
 
-Sample [roms](https://github.com/SKatiyar/go-chip8/tree/master/roms) can be used to test the installation.
+Sample [roms](https://github.com/skatiyar/go-chip8/tree/master/roms) can be used to test the installation.
 
 ```
 go run main.go <modifier> <path/to/rom>
